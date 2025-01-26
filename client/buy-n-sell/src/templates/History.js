@@ -1,34 +1,179 @@
-import React,{useState} from "react";
+import React,{use, useEffect, useState} from "react";
 import { Box, Container, Typography, FormControl, InputLabel, Select, MenuItem, Tab, Tabs } from "@mui/material";
 import { Card, CardContent } from "@mui/material";
 import Navbar from "./Navbar";
-
+import axios from "axios";
 
 // Function to generate a random OTP
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000); // Random 6-digit OTP
   };
-const pendingOrders = [
-{ orderId: 'ORD123', itemName: 'Laptop', status: 'Pending' },
-{ orderId: 'ORD124', itemName: 'Smartphone', status: 'Pending' },
-];
+// const pendingOrders = [
+// { _id: 'ORD123', itemName: 'Laptop', status: 'Pending' },
+// { _id: 'ORD124', itemName: 'Smartphone', status: 'Pending' },
+// ];
 
-const boughtItems = [
-{ itemName: 'Tablet', purchaseDate: '2024-01-10' },
-{ itemName: 'Headphones', purchaseDate: '2024-01-12' },
-];
+// const boughtItems = [
+// { itemName: 'Tablet', purchaseDate: '2024-01-10' },
+// { itemName: 'Headphones', purchaseDate: '2024-01-12' },
+// ];
 
-const soldItems = [
-{ itemName: 'Monitor', saleDate: '2024-01-05' },
-{ itemName: 'Keyboard', saleDate: '2024-01-07' },
-];
+// const soldItems = [
+// { itemName: 'Monitor', saleDate: '2024-01-05' },
+// { itemName: 'Keyboard', saleDate: '2024-01-07' },
+// ];
+
+
+const getInfo = async () => {
+    const token = localStorage.getItem("token");
+    try {
+        const response = await axios.get("http://localhost:3081/info", {
+            headers: {
+                "Content-Type": "application/json",
+                authorization: token,
+            },
+        });
+
+        if (response.data.error) {
+            console.log("Error: ", response.data.message);
+            return null;
+        }
+        const userData = response.data.data;
+        return userData.email;
+    } catch (error) {
+        if (error.response) {
+            console.log(`HTTP Error: ${error.response.status} - ${error.response.statusText}`);
+            console.log("Error Message: ", error.response.data?.message || "Unknown error");
+            // naviate to logout
+            window.location.href = "/logout";
+        } else if (error.request) {
+            console.log("No response from server.");
+        } else {
+            console.log("Error: ", error.message);
+        }
+        return null; 
+    }
+};
+
+const getHistory = async () => {
+    const token = localStorage.getItem("token");    
+    try {
+        const response = await axios.get("http://localhost:3081/getOrders", {
+            headers: {
+                "Content-Type": "application/json",
+                authorization: token,
+            },
+        });
+        
+        if (response.data.error) {
+            console.log("Error: ", response.data.message);
+            return null;
+        }
+        const orders = response.data
+        // console.log(orders)
+        
+        return orders;
+    } catch (error) {
+        if (error.response) {
+            console.log(`HTTP Error: ${error.response.status} - ${error.response.statusText}`);
+            console.log("Error Message: ", error.response.data?.message || "Unknown error");
+            // naviate to logout
+            window.location.href = "/logout";
+        } else if (error.request) {
+            console.log("No response from server.");
+        } else {
+            console.log("Error: ", error.message);
+        }
+        return null; 
+    }
+};
+
+const changeOTP = async (data) => {
+    const token = localStorage.getItem("token");    
+    // console.log(data)
+    try {
+        const response = await axios.put("http://localhost:3081/changeOTP", {
+            headers: {
+                "Content-Type": "application/json",
+                authorization: token,
+            },
+            data: data
+        });
+        
+        if (response.data.error) {
+            console.log("Error: ", response.data.message);
+            return null;
+        }
+        const orders = response.data
+        
+        return orders;
+    } catch (error) {
+        if (error.response) {
+            console.log(`HTTP Error: ${error.response.status} - ${error.response.statusText}`);
+            console.log("Error Message: ", error.response.data?.message || "Unknown error");
+            // naviate to logout
+            // window.location.href = "/logout";
+        } else if (error.request) {
+            console.log("No response from server.");
+        } else {
+            console.log("Error: ", error.message);
+        }
+        return null; 
+    }
+}
 
 function History() {
     const [selectedTab, setSelectedTab] = useState(0);
+    const [pendingOrders,setPendingOrders] = useState([]);
+    const [boughtItems,setBoughtItems] = useState([]);
+    const [soldItems,setSoldItems] = useState([]);
 
     const handleTabChange = (event, newValue) => {
         setSelectedTab(newValue);
     };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const email = await getInfo();
+            const orders = await getHistory();
+            const pending = [];
+            const bought = [];
+            const sold = [];
+            const data = [];
+            if(!orders){
+                return [];
+            }
+            for(let i = 0; i < orders.length ; i++){
+                if(!orders[i].processed){
+                    const otp = generateOTP();
+                    data.push({
+                        _id: orders[i]._id,
+                        newotp: otp
+                    });
+                    orders[i].otp = otp;
+                    pending.push(orders[i]);
+                }
+                else{
+                    if(orders[i].buyerID === email){
+                        bought.push(orders[i]);
+                    }
+                    else{
+                        sold.push(orders[i]);
+                    }
+                }
+            }
+            if(data){
+                changeOTP(data);
+            }
+
+            setPendingOrders(pending);
+            setBoughtItems(bought);
+            setSoldItems(sold);
+            
+        };
+
+        fetchData();
+    }, []);
 
     return (
         <Box>
@@ -67,15 +212,16 @@ function History() {
             </Container>
             <Container>
             <Box sx={{ padding: 3 }}>
-            {selectedTab === 0 && (
+            {pendingOrders && selectedTab === 0 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {pendingOrders.map((order) => (
-                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250 , textAlign:"center" }} key={order.orderId}>
+                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250 , textAlign:"center" }} key={order._id}>
                     <Card>
                     <CardContent>
                         <Typography variant="h4" >{order.itemName}</Typography>
-                        <Typography variant="h6" color="textSecondary">Order ID: {order.orderId}</Typography>
-                        <Typography variant="h6" sx={{outline:2, margin:3 , padding: 2 , textAlign:"center"}}>OTP: {generateOTP()}</Typography>
+                        <Typography variant="h6" color="textPrimary">Seller ID: {order.sellerID}</Typography>
+                        <Typography variant="h6" color="textSecondary">Order ID: {order._id}</Typography>
+                        <Typography variant="h6" sx={{outline:2, margin:3 , padding: 2 , textAlign:"center"}}>OTP: {order.otp}</Typography>
                     </CardContent>
                     </Card>
                 </Box>
@@ -83,14 +229,14 @@ function History() {
             </Box>
             )}
 
-            {selectedTab === 1 && (
+            {boughtItems && selectedTab === 1 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {boughtItems.map((item, index) => (
-                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={index}>
+                {boughtItems.map((item) => (
+                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={item._id}>
                     <Card>
                     <CardContent>
                         <Typography variant="h4">{item.itemName}</Typography>
-                        <Typography variant="h6" color="textSecondary">Purchased on: {item.purchaseDate}</Typography>
+                        <Typography variant="h6" color="textSecondary">Purchased From: {item.sellerID}</Typography>
                     </CardContent>
                     </Card>
                 </Box>
@@ -98,14 +244,14 @@ function History() {
             </Box>
             )}
 
-            {selectedTab === 2 && (
+            {soldItems && selectedTab === 2 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {soldItems.map((item, index) => (
-                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={index}>
+                {soldItems.map((item) => (
+                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={item._id}>
                     <Card>
                     <CardContent>
                         <Typography variant="h4">{item.itemName}</Typography>
-                        <Typography variant="h6" color="textSecondary">Sold on: {item.saleDate}</Typography>
+                        <Typography variant="h6" color="textSecondary">Sold To: {item.buyerID}</Typography>
                     </CardContent>
                     </Card>
                 </Box>

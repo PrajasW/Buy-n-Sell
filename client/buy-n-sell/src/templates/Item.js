@@ -84,7 +84,7 @@ function Item() {
             );
     
             if (response.status === 200) {
-                console.log(response.data);
+                // console.log(response.data);
                 setError("");
                 // redirect
                 window.location.href = "/cart";

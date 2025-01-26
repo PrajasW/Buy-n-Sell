@@ -70,7 +70,7 @@ function Cart() {
         getInfo();
         getCart().then((data) => {
             setItems(data);
-            console.log(data);
+            // console.log(data);
         });
     }, []);
 
@@ -95,6 +95,26 @@ function Cart() {
                 console.log("Error: ", err.response.data.message);
             });
     };
+    const handelCheckout = async () => {
+        const token = localStorage.getItem("token");
+        await axios.put("http://localhost:3081/checkout",{},{
+            headers: {
+                "Content-Type": "application/json",
+                authorization : token,
+            },
+        }).then((res) => {
+            if (res.data.error) {
+                console.log("Error: ", res.data.message);
+            } else {
+                console.log("Success: ", res.data.message);
+                setItems([]);
+            }
+        })
+        .catch((err) => {
+            console.log("Error: ", err.response.data.message);
+        });
+    }
+
     return (
         <Box>
             <Navbar />
@@ -164,7 +184,7 @@ function Cart() {
                             <Typography variant="h5">
                                 Total Cost : ₹{totalCost}
                             </Typography>
-                            <Button variant="contained" color="secondary" size="large"> 
+                            <Button variant="contained" color="secondary" size="large" onClick={handelCheckout}> 
                                 Checkout
                             </Button>
                         </Box>

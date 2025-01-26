@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Container,
@@ -9,46 +9,102 @@ import {
     Alert
 } from "@mui/material";
 import Navbar from "./Navbar";
+import axios from "axios";
+import { data } from "react-router-dom";
+
+
+const getHistory = async () => {
+    const token = localStorage.getItem("token");    
+    try {
+        const response = await axios.get("http://localhost:3081/getDeliveries", {
+            headers: {
+                "Content-Type": "application/json",
+                authorization: token,
+            },
+        });
+        
+        if (response.data.error) {
+            console.log("Error: ", response.data.message);
+            return null;
+        }
+        const orders = response.data
+        return orders;
+    } catch (error) {
+        if (error.response) {
+            console.log(`HTTP Error: ${error.response.status} - ${error.response.statusText}`);
+            console.log("Error Message: ", error.response.data?.message || "Unknown error");
+            // naviate to logout
+            // window.location.href = "/logout";
+        } else if (error.request) {
+            console.log("No response from server.");
+        } else {
+            console.log("Error: ", error.message);
+        }
+        return null; 
+    }
+};
+
 
 function Delivery() {
-    const [orders, setOrders] = useState([
-        {
-            id: 1,
-            itemName: "Laptop",
-            price: 800,
-            buyer: "Alice",
-            otp: "1234", // In a real-world app, this should not be exposed
-        },
-        {
-            id: 2,
-            itemName: "Phone",
-            price: 500,
-            buyer: "Bob",
-            otp: "5678",
-        },
-    ]);
-
-    const [otpInput, setOtpInput] = useState({});
+    const [orders, setOrders] = useState([]);
     const [error, setError] = useState("");
 
-    const handleOtpChange = (orderId, value) => {
-        setOtpInput((prev) => ({
-            ...prev,
-            [orderId]: value,
-        }));
-    };
-
-    const handleTransactionClose = (orderId) => {
-        const order = orders.find((o) => o.id === orderId);
-        if (order && otpInput[orderId] === order.otp) {
-            setOrders((prev) => prev.filter((o) => o.id !== orderId));
-            setError("");
-            alert("Transaction closed successfully!");
-        } else {
-            setError("Incorrect OTP. Please try again.");
+    
+    useEffect(() => {
+    const fetchData = async () => {
+        const orders = await getHistory();
+        if(orders){
+            const updatedOrders = orders.map((order) => ({
+                ...order,
+                otp: "",
+            }));
+            setOrders(updatedOrders);            
         }
     };
-    
+
+        fetchData();
+    }, []);
+
+    const handleOtpChange = (orderId, value) => {
+        setOrders   ((prevOrders) =>
+            prevOrders.map((order) =>
+                order._id === orderId ? { ...order, otp: value } : order
+            )
+        );
+    };
+
+    const handleTransactionClose = async (orderId) => {
+        // print the otp value
+        const order = orders.find((o) => o._id === orderId);
+        const data = {};
+        if(order.otp && /^\d{6}$/.test(order.otp)) {
+            data._id = order._id;
+            data.otp = order.otp;
+        } 
+        else {
+            setError("OTP must be a 6-digit number.");
+            return;
+        }
+        // console.log(data);
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.put("http://localhost:3081/closeTransaction", {
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: token,
+                },
+                data : data
+            });
+            console.log(response.data.message);
+            if(response.data.message == "order succesfully closed"){
+                // remove this item from page
+                setOrders((prevOrders) => prevOrders.filter((order) => order._id !== orderId));
+            }
+        } catch (error) {
+            setError(error.response.data.message);
+        }
+    };
+
     return (
         <Box>
             <Navbar />
@@ -85,9 +141,9 @@ function Delivery() {
                             {error}
                         </Alert>
                     )}
-                    {orders.map((order) => (
+                    {orders && orders.map((order) => (
                         <Paper
-                        key={order.id}
+                        key={order._id}
                         sx={{
                                 padding: 3,
                                 display: "flex",
@@ -99,12 +155,14 @@ function Delivery() {
                             <Typography variant="h5">
                                 {order.itemName}
                             </Typography>
-                            <Typography variant="h5">
-                                {order.buyer}
+                            <Typography variant="h6" color="secondary">
+                                {order._id}
                             </Typography>
-
                             <Typography variant="h5">
-                                ${order.price}
+                                {order.buyerID}
+                            </Typography>
+                            <Typography variant="h5">
+                                ₹{order.amount}
                             </Typography>
                             <Box
                                 sx={{
@@ -116,16 +174,17 @@ function Delivery() {
                                 <TextField
                                     label="Enter OTP"
                                     variant="outlined"
+                                    inputMode="numeric"
                                     size="small"
-                                    value={otpInput[order.id] || ""}
+                                    value={order.otp}
                                     onChange={(e) =>
-                                        handleOtpChange(order.id, e.target.value)
+                                        handleOtpChange(order._id, e.target.value)
                                     }
                                 />
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    onClick={() => handleTransactionClose(order.id)}
+                                    onClick={() => handleTransactionClose(order._id)}
                                 >
                                     Close Transaction
                                 </Button>

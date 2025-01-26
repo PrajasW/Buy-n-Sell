@@ -76,7 +76,7 @@ function Profile() {
     useEffect(() => {
         getInfo().then((data) => {
             const date = new Date(data.dateOfBirth);
-            console.log(data.dateOfBirth)
+            // console.log(data.dateOfBirth)
             setProfileData({
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -137,7 +137,6 @@ function Profile() {
             dateOfBirth: profileData.dateOfBirth,
             email: profileData.email,
         });
-        console.log(password);
         setPassword("");
         setConfirmPassword("");
         setChanges(true);

@@ -7,11 +7,11 @@ const OrderSchema = new Schema({
         required: true,
     },
     buyerID: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         required: true,
     },
     sellerID: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         required: true,
     },
     amount: {
@@ -22,6 +22,11 @@ const OrderSchema = new Schema({
         type: String,
         required: true,
     },
+    processed : {
+        type: Boolean,
+        required: true,
+        default: false,
+    }
 });
 
 const Order = mongoose.model('Order', OrderSchema);
