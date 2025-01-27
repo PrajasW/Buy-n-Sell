@@ -1,9 +1,9 @@
-import React,{use, useEffect, useState} from "react";
+import React,{useEffect, useState} from "react";
 import { Box, Container, Typography, FormControl, InputLabel, Select, MenuItem, Tab, Tabs } from "@mui/material";
 import { Card, CardContent } from "@mui/material";
 import Navbar from "./Navbar";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 // Function to generate a random OTP
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000); // Random 6-digit OTP
@@ -56,6 +56,7 @@ const getInfo = async () => {
 };
 
 const getHistory = async () => {
+    
     const token = localStorage.getItem("token");    
     try {
         const response = await axios.get("http://localhost:3081/getOrders", {
@@ -127,10 +128,11 @@ function History() {
     const [pendingOrders,setPendingOrders] = useState([]);
     const [boughtItems,setBoughtItems] = useState([]);
     const [soldItems,setSoldItems] = useState([]);
-
+    
     const handleTabChange = (event, newValue) => {
         setSelectedTab(newValue);
     };
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -174,7 +176,9 @@ function History() {
 
         fetchData();
     }, []);
-
+    const handleClick = (id) => {
+        navigate(`/item/${id}`);
+    }
     return (
         <Box>
         <Navbar/>
@@ -215,9 +219,15 @@ function History() {
             {pendingOrders && selectedTab === 0 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {pendingOrders.map((order) => (
-                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250 , textAlign:"center" }} key={order._id}>
+                <Box sx={{ minWidth: 500 , textAlign:"center" }} key={order._id} >
                     <Card>
-                    <CardContent>
+                    <CardContent
+                    onClick={() => {handleClick(order.itemID)}}
+                    sx={{
+                      ":hover": {
+                        cursor: "pointer",
+                        backgroundColor: "ButtonShadow",
+                      }}}>
                         <Typography variant="h4" >{order.itemName}</Typography>
                         <Typography variant="h6" color="textPrimary">Seller ID: {order.sellerID}</Typography>
                         <Typography variant="h6" color="textSecondary">Order ID: {order._id}</Typography>
@@ -231,13 +241,19 @@ function History() {
 
             {boughtItems && selectedTab === 1 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {boughtItems.map((item) => (
-                    <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={item._id}>
+                {boughtItems.map((order) => (
+                    <Box sx={{ minWidth: 500, textAlign:"center" }} key={order._id}>
                     <Card>
-                    <CardContent>
-                        <Typography variant="h4">{item.itemName}</Typography>
-                        <Typography variant="h6" color="textSecondary">Order ID: {item._id}</Typography>
-                        <Typography variant="h6" color="textPrimary">Purchased From: {item.sellerID}</Typography>
+                    <CardContent 
+                    onClick={() => {handleClick(order.itemID)}}
+                    sx={{
+                      ":hover": {
+                        cursor: "pointer",
+                        backgroundColor: "ButtonShadow",
+                      }}}>
+                        <Typography variant="h4">{order.itemName}</Typography>
+                        <Typography variant="h6" color="textSecondary">Order ID: {order._id}</Typography>
+                        <Typography variant="h6" color="textPrimary">Purchased From: {order.sellerID}</Typography>
                     </CardContent>
                     </Card>
                 </Box>
@@ -246,13 +262,20 @@ function History() {
             )}
 
             {soldItems && selectedTab === 2 && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {soldItems.map((item) => (
-                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={item._id}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }} >
+                {soldItems.map((order) => (
+                <Box sx={{  minWidth: 500, textAlign:"center" }} key={order._id}>
                     <Card>
-                    <CardContent>
-                        <Typography variant="h4">{item.itemName}</Typography>
-                        <Typography variant="h6" color="textSecondary">Sold To: {item.buyerID}</Typography>
+                    <CardContent 
+                    onClick={() => {handleClick(order.itemID)}}
+                    sx={{
+                      ":hover": {
+                        cursor: "pointer",
+                        backgroundColor: "ButtonShadow",
+                      }}}>
+                        <Typography variant="h4">{order.itemName}</Typography>
+                        <Typography variant="h6" color="textSecondary">Order ID: {order._id}</Typography>
+                        <Typography variant="h6" color="textPrimary">Sold To: {order.buyerID}</Typography>
                     </CardContent>
                     </Card>
                 </Box>

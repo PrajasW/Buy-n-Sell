@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
 
+
 const getInfo = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -100,7 +101,6 @@ function Item() {
             // alert("An error occurred. Please try again.");
         }
     };
-    
     return (
         <Box>
             <Navbar />
@@ -137,8 +137,12 @@ function Item() {
                         <h1>₹{item.price}</h1>
                     </Box>
                     <h4>{item.description}</h4>
-                <Box sx={{ display: "flex", justifyContent: "right" }}>    
-                <Button variant="contained" color="primary" key={item._id} onClick={() => addToCart(item._id)} >Add To Cart</Button>
+                <Box sx={{ display: "flex", justifyContent: "right" }}>
+                {
+                    !item.sold && (
+                        <Button variant="contained" color="primary" key={item._id} onClick={() => addToCart(item._id)} >Add To Cart</Button>
+                    )
+                }    
                 </Box>
                 </Paper>
             </Container>
