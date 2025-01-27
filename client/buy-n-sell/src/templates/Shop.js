@@ -155,7 +155,6 @@ function Shop() {
             </FormControl>
             </Box>
             
-            {/* Item List Section */}
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
         {filteredItems && filteredItems.map((item, index) => (
           <Box key={index} sx={{ width: { xs: "100%", sm: "48%", md: "30%" }, mb: 4 }}>

@@ -232,11 +232,12 @@ function History() {
             {boughtItems && selectedTab === 1 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {boughtItems.map((item) => (
-                <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={item._id}>
+                    <Box sx={{ flex: '1 1 calc(33% - 16px)', minWidth: 250, textAlign:"center" }} key={item._id}>
                     <Card>
                     <CardContent>
                         <Typography variant="h4">{item.itemName}</Typography>
-                        <Typography variant="h6" color="textSecondary">Purchased From: {item.sellerID}</Typography>
+                        <Typography variant="h6" color="textSecondary">Order ID: {item._id}</Typography>
+                        <Typography variant="h6" color="textPrimary">Purchased From: {item.sellerID}</Typography>
                     </CardContent>
                     </Card>
                 </Box>

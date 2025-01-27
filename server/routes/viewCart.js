@@ -20,6 +20,9 @@ router.get('/', async (req, res) => {
     var items = [];
     for (let i = 0; i < cart.length; i++) {
         const item = await Item.findById(cart[i]);
+        if(item.sold){
+            continue;
+        }
         // send only the id, name , price , vendor
         const data = {
             _id: item._id,

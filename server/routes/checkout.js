@@ -44,11 +44,12 @@ router.put('/', async (req, res) => {
 
         // check if itemId exists in database
         // const item = await Item.findById(itemID);
-        if (!item) {
-            // skip if this item does not exist but remove it from cart
+        if (item.sold == true) {
             continue;
         }
-        await Item.findByIdAndDelete(itemID);
+        item.sold = true;
+        await item.save();
+        
         // use the buyer's _id as salt
         const order = new Order({
             itemID : itemID,

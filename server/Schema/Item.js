@@ -58,6 +58,10 @@ const ItemSchema = new Schema({
         type: String,
         required: true,
     },
+    sold: {
+        type: Boolean,
+        default: false
+    }
 });
 const Item = mongoose.model('Item', ItemSchema);
 

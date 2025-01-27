@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const sellerID = decoded.email;
             // console.log(sellerID);
-            const send_items = items.filter(item => item.sellerID !== sellerID);
+            const send_items = items.filter(item => item.sellerID !== sellerID && !item.sold);
             res.json(send_items);
         }
     } catch (err) {
