@@ -1,5 +1,6 @@
 import {React , useState} from "react";
-import { Link } from "react-router-dom";
+import { data, Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import { TextField, Button, Box, Typography, Alert } from "@mui/material";
 import axios from "axios";
 
@@ -9,8 +10,13 @@ function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [captchaToken, setcaptchaToken ] = useState(null);
     
-   const handleSubmit = (e) => {
+    const handleCaptchaChange = (value) => {
+        setcaptchaToken(value);
+    };
+    
+    const handleSubmit = (e) => {
         e.preventDefault();
         if((!email.endsWith("@iiit.ac.in") && !email.endsWith("@research.iiit.ac.in") && !email.endsWith("@student.iiit.ac.in") ) || email === "" || password === "") {
             setError("Invalid email/password format");
@@ -20,7 +26,19 @@ function Login() {
             setError("Invalid email/password format");
             return;
         }
-        axios.post(url, {email, password})
+        if(!(captchaToken)){
+            setError("Solve The Captcha");
+            return;
+        }
+        axios.post(url,{
+            email: email, 
+            password: password,
+            captchaToken: captchaToken
+        },{
+            headers: {
+                "Content-Type" : "application/json"
+            }
+        })
             .then((res) => {
                 if(res.data.error) {
                     setError(res.data.message);
@@ -113,6 +131,10 @@ function Login() {
                             Password must be at least 8 characters long and include at least one number and one special character.
                         </Typography>
                     )}
+                       <ReCAPTCHA
+                        sitekey="6Lfxw8kqAAAAAD8lG2moN_BVe61kEgWICnzu2_lJ"
+                        onChange={handleCaptchaChange}
+                        />
                     <Box
                         sx={{
                             display: "flex",

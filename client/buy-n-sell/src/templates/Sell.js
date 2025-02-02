@@ -63,6 +63,10 @@ const SellProductForm = () => {
         setFormError("Price must be a number.");
         return;
     }
+    if(parseFloat(formData.price) <= 0){
+        setFormError("Price must be greater than 0.");
+        return;
+    }
 
     if (!isCategorySelected) {
       setFormError("Please select at least one category.");

@@ -15,6 +15,8 @@ const ItemSchema = new Schema({
     price: {
         type: Number,
         required: true,
+        // check positive
+        check: (price) => price > 0,
     },
     description: {
         type: String,

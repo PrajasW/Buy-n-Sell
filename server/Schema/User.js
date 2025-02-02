@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required: true, 
         unique: true, 
-        match: /^[a-zA-Z0-9._%+-]+@iiit\.ac.in$/ ,  // Enforce IIIT email
+        match: /^[a-zA-Z0-9._%+-]+@(iiit\.ac\.in|research\.iiit\.ac\.in|student\.iiit\.ac\.in)$/,
     },
     dateOfBirth: { type: Date, required: true },
     contactNumber: { 
@@ -45,12 +45,11 @@ userSchema.methods.generateAuthToken = function () {
 
 const validateRegister= (data) => {
     const schema = Joi.object({
-        firstName : Joi.string().required().label('firstName'),
-        lastName : Joi.string().required().label('lastName'),
-        email: Joi.string().email().required().label('email'),
-        email: Joi.string().email().regex(/^[a-zA-Z0-9._%+-]+@iiit\.ac.in$/).required().label('email'),
-        contactNumber : Joi.string().required().label('contactNumber'),
-        dateOfBirth : Joi.date().required().label('dateOfBirth'),
+        firstName: Joi.string().required().label('firstName'),
+        lastName: Joi.string().required().label('lastName'),
+        email: Joi.string().email().regex(/^[a-zA-Z0-9._%+-]+@(iiit\.ac\.in|research\.iiit\.ac\.in|student\.iiit\.ac\.in)$/).required().label('email'),
+        contactNumber: Joi.string().required().label('contactNumber'),
+        dateOfBirth: Joi.date().required().label('dateOfBirth'),
         password: Joi.string().required().label('password'),
     });
     return schema.validate(data);
@@ -60,6 +59,7 @@ const validateLogin = (data) => {
     const schema = Joi.object({
         email: Joi.string().email().required().label('email'),
         password: Joi.string().required().label('password'),
+        captchaToken: Joi.string().required().label('captchaToken')
     });
     return schema.validate(data);
 }

@@ -1,14 +1,14 @@
-import React from "react";
-import Navbar from "./Navbar";
-import { Box } from "@mui/material";
+import SupportChat from './SupportChat';
+import Navbar from './Navbar';
+import { Box } from '@mui/system';
 
 function Support() {
-    return (
-        <Box>
-            <Navbar/>
-            <h1>This Part is Under construction</h1>
-        </Box>
-    )
+  return (
+    <Box>
+      <Navbar />
+      <SupportChat />
+    </Box>
+  );
 }
 
 export default Support;
